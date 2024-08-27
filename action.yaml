@@ -1,0 +1,31 @@
+name: 'Shared pre-commit'
+description: 'Runs a standard pre-commit'
+inputs:
+  precommit-python-version:
+    description: "Which python version to run the pre-commit on"
+    required: false
+    default: "3.12"
+runs:
+  using: "composite"
+  steps:
+    - name: "Setup pre-commit"
+    - name: Set up Latest Python
+      env:
+          INPUT_PRECOMMIT_PYTHON_VERSION: ${{ inputs.precommit-python-version }}
+      uses: actions/setup-python@v4   
+      with:
+        python-version: $INPUT_PRECOMMIT_PYTHON_VERSION
+
+    - name: Install pre-commit
+      run: pip install pre-commit
+      shell: bash
+
+    - name: Configure the right pre-commit file
+      run: |
+        if [ ! -f .pre-commit-config.yaml ]; then
+          cp .pre-commit-config.default.yaml .pre-commit-config.yaml
+        fi
+
+    - name: Run linting
+      run: pre-commit install && pre-commit run --all-files
+      shell: bash
