@@ -1,0 +1,32 @@
+name: 'Shared pre-commit'
+description: 'Runs a standard pre-commit'
+inputs:
+  precommit-python-version:
+    description: "Which python version to run the pre-commit on"
+    required: false
+    default: "3.12"
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Latest Python
+      uses: actions/setup-python@v4   
+      with:
+        python-version: ${{ inputs.precommit-python-version }}
+
+    - uses: actions/checkout@v3
+    - name: Install package
+      run: pip install .[test,lint]
+      shell: bash
+
+    - name: Install pre-commit
+      run: |
+        pip install pre-commit
+        if [ ! -f .pre-commit-config.yaml ]; then
+          cp ${{ github.action_path }}/.pre-commit-config.default.yaml .pre-commit-config.yaml
+        fi
+        pre-commit install
+      shell: bash
+
+    - name: Run linting
+      run: pre-commit run --all-files
+      shell: bash
